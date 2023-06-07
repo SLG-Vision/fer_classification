@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 class Distillation:
     def __init__(self) -> None:
-        self.distillation_loss = nn.KLDivLoss()
+        self.distillation_loss = nn.KLDivLoss(reduction='batchmean')
         self.temperature = 1
         self.alpha = 0.25
     

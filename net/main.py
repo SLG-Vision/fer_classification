@@ -23,7 +23,7 @@ testset = datasets.ImageFolder(root=f'./fer2013/test/', transform=transform)
 
 # Creazione del dataloader per caricare i dati in batch
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True)
-testloader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=True)
+testloader = torch.utils.data.DataLoader(testset, batch_size=5, shuffle=False)
 
 # Teacher: VGG19 pretrained
 teacher = VGG19()
@@ -40,7 +40,7 @@ for layers in teacher.parameters():
 distillator = Distillation()
 
 # Optimizer
-optimizer = optim.Adam(student.parameters(), lr=0.001)
+optimizer = optim.Adam(student.parameters(), lr=0.01, weight_decay=5e-4)
 
 #Student loss
 criterion = nn.CrossEntropyLoss()
@@ -109,6 +109,6 @@ def test(epoch):
         torch.save(student.state_dict(), os.path.join('.', 'student_distilled.t7'))
         best_test_acc = test_acc        
 
-for epoch in range(0, 60):
+for epoch in range(0, 10):
     train(epoch)
     test(epoch)
