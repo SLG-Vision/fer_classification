@@ -1,6 +1,8 @@
+import os
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import numpy as np
 from torchvision import transforms, datasets
 from distillation import Distillation
 from pretrained.VGG import VGG19
@@ -43,10 +45,20 @@ optimizer = optim.Adam(student.parameters(), lr=0.001)
 #Student loss
 criterion = nn.CrossEntropyLoss()
 
+if torch.cuda.is_available():
+    teacher.cuda()
+    student.cuda()
+
 def train(epoch):
+    print(f'Training epoch {epoch}')
+    student.train()
+    total = 0
+    correct = 0
     for epoch in range(epoch):    
         for batch_id, (img, label) in enumerate(trainloader):
             
+            img, label = img.cuda(), label.cuda()
+
             teacher_outputs = teacher(img)
             student_outputs = student(img)
 
@@ -59,5 +71,44 @@ def train(epoch):
             loss_dist.backward()
             optimizer.step()
             
-for epoch in range(60):
+            loss_dist += loss_dist.data.item()
+            _, predicted = torch.max(student_outputs.data, 1)
+            total += label.size(0)
+            correct += (predicted == label).sum().item()
+
+            accuracy = correct / total
+        print(f"Accuracy {accuracy} Distillation Loss {loss_dist/(batch_id+1)}")
+
+
+def test(epoch):
+    total = 0
+    correct = 0
+    test_acc = 0
+    best_test_acc = 0
+    print(f'Testing epoch {epoch}')
+    student.eval()
+    
+    for batch_id, (inputs, labels) in enumerate(testloader):
+        
+        if torch.cuda.is_available:
+            inputs, labels = inputs.cuda(), labels.cuda()
+        
+        student_outputs = student(inputs)
+        loss = criterion(student_outputs, labels)
+        
+        _, predicted = torch.max(student_outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+        
+        test_acc = 100.*correct/total
+        
+    if test_acc > best_test_acc:
+        
+        print(f"best_test_acc: {test_acc}")
+        
+        torch.save(student.state_dict(), os.path.join('.', 'student_distilled.t7'))
+        best_test_acc = test_acc        
+
+for epoch in range(0, 60):
     train(epoch)
+    test(epoch)
