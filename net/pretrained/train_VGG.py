@@ -7,6 +7,8 @@ import transforms as transforms
 import os
 import numpy as np
 
+best_test_acc = 0
+
 transform_train = transforms.Compose([
     transforms.RandomCrop(44),
     transforms.RandomHorizontalFlip(),
@@ -68,7 +70,7 @@ def test(epoch):
     total = 0
     correct = 0
     test_acc = 0
-    best_test_acc = 0
+    global best_test_acc
     
     net.eval()
     
