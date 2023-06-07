@@ -6,7 +6,6 @@ import torch.nn.functional as F
 
 class Distillation:
     def __init__(self) -> None:
-        self.student_loss = nn.CrossEntropyLoss()
         self.distillation_loss = nn.KLDivLoss()
         self.temperature = 1
         self.alpha = 0.25
