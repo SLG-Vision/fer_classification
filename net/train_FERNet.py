@@ -6,7 +6,7 @@ import numpy as np
 from torchvision import transforms, datasets
 from distillation import Distillation
 from pretrained.VGG import VGG19
-from FERNet import FERNet
+from network import FERNet
 
 best_test_acc = 0
 
