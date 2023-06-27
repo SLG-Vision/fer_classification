@@ -2,8 +2,9 @@ from pipeline.fer_classification.net.network import FERNet
 from pipeline.fer_classification.net.pretrained.VGG import VGG19
 from pipeline.fer_classification.net.utils import Utility
 import torch
+import cv2
 
-fernet_label = {0: 'angry', 1: 'disgust', 2: 'fear', 3:'sad' , 4: 'happy', 5: 'surprise', 6: 'neutral'}
+fernet_label = {0: 'anger', 1: 'contempt', 2: 'disgust', 3:'fear' , 4: 'happy', 5: 'sadness', 6: 'surprise'}
 
 class FER:
 
@@ -14,17 +15,17 @@ class FER:
 
     def load(self, prod=True):
         self._net.load_state_dict(
-            torch.load('fer_classification/net/student_distilled.t7' if prod else 'fer_classification/net/model.t7',
+            torch.load('fer_classification/net/best_student.t7' if prod else 'fer_classification/net/best_vgg.t7',
                        map_location=self._device))
 
     def predict(self, return_frame):
-        input_tensor = self._utils.transform(return_frame)
+        resized_image = cv2.resize(return_frame, (48, 48))
+        input_tensor = self._utils.transform(resized_image)
 
-        expanded_tensor = torch.zeros((3,48,48))
-        for i in range(3):
-            expanded_tensor[i,:,:] = input_tensor[0,:,:]
-        self._utils.print(expanded_tensor)
+        self._utils.print(input_tensor)
 
-        expanded_tensor = expanded_tensor.unsqueeze(0)
-        pred = self._net(expanded_tensor)
+        input_tensor = input_tensor.unsqueeze(0)
+
+        pred = self._net(input_tensor)
+
         return fernet_label[int(torch.argmax(pred).item())]
