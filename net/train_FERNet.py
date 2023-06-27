@@ -2,7 +2,6 @@ import os
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import numpy as np
 from torchvision import transforms, datasets
 from distillation import Distillation
 from pretrained.VGG import VGG19

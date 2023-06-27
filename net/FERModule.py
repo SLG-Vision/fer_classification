@@ -2,6 +2,7 @@ from .network import FERNet
 from .pretrained.VGG import VGG19
 from .utils import Utility
 import torch
+import os
 import cv2
 
 fernet_label = {0: 'anger', 1: 'contempt', 2: 'disgust', 3:'fear' , 4: 'happy', 5: 'sadness', 6: 'surprise'}
@@ -15,7 +16,7 @@ class FER:
 
     def load(self, prod=True):
         self._net.load_state_dict(
-            torch.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'student_distilled.t7') if prod else 'fer_classification/net/model.t7',
+            torch.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'best_student.t7' if prod else 'best_vgg.t7'),
                        map_location=self._device))
 
     def predict(self, return_frame):
