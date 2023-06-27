@@ -52,8 +52,6 @@ class CK(data.Dataset):
                 self.train_data.append(self.data['data_pixel'][train_index[ind]])
                 self.train_labels.append(self.data['data_label'][train_index[ind]])
             
-            print(len(self.train_data[0]), self.train_labels[0])
-
         
         if self.split == 'Testing':
             self.test_data = []
@@ -61,6 +59,9 @@ class CK(data.Dataset):
             for ind in range(len(test_index)):
                 self.test_data.append(self.data['data_pixel'][test_index[ind]])
                 self.test_labels.append(self.data['data_label'][test_index[ind]])
+            
+            print(self.test_labels)
+
 
 
     def __getitem__(self, index):

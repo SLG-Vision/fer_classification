@@ -7,7 +7,7 @@ class FERNet(nn.Module):
         super().__init__()
 
         self.layer1 = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, padding=1),
+            nn.Conv2d(1, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2)

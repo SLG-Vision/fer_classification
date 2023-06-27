@@ -1,4 +1,5 @@
 *.ipynb
 __pycache__
 dataset
-model.t7
+*.json
+*.jpg
