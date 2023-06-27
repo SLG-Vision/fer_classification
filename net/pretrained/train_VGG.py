@@ -3,27 +3,32 @@ import torch.nn as nn
 import torch.optim as optim
 from VGG import VGG19
 from CK import CK
-import transforms as transforms
+import torchvision.transforms as transforms
+import torchvision.datasets as datasets
 import os
 import numpy as np
 
 best_test_acc = 0
 
 transform_train = transforms.Compose([
-    transforms.RandomCrop(44),
+    transforms.Grayscale(1),
     transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
+    transforms.RandomAdjustSharpness(sharpness_factor=2),
+    transforms.ToTensor()
 ])
 
 transform_test = transforms.Compose([
-    transforms.TenCrop(44),
-    transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+    transforms.RandomAdjustSharpness(sharpness_factor=2),
+    transforms.Grayscale(1),
+    transforms.ToTensor()
 ])
 
-train = CK(split='Training', transform=transform_train)
-trainloader = torch.utils.data.DataLoader(train, batch_size=128, shuffle=True, num_workers=1)
-test = CK(split='Testing', transform=transform_test)
-testloader = torch.utils.data.DataLoader(test, batch_size=5, shuffle=False, num_workers=1)
+db = datasets.DatasetFolder(root='/workspace/FER Classification/Facial-Expression-Recognition.Pytorch/CK+48', transform=transform_train, loader=datasets.folder.default_loader, extensions='.png')
+trainset_len = int(0.8*len(db))
+trainset, testset = torch.utils.data.random_split(db, lengths=[trainset_len, len(db)-trainset_len])
+
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=20, shuffle=True, num_workers=1)
+testloader = torch.utils.data.DataLoader(testset, batch_size=20, shuffle=False, num_workers=1)
 
 net = VGG19()
 
@@ -32,6 +37,8 @@ if torch.cuda.is_available():
     
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
+
+best_test_acc = 0
 
 def train(epoch):
     print("Epoca:" + str(epoch))
@@ -51,6 +58,9 @@ def train(epoch):
         
         # Calcolo della loss
         loss = criterion(outputs, labels)
+        
+        # Clip Gradient
+        #torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
         
         # Calcolo dei gradienti
         loss.backward()
@@ -74,31 +84,42 @@ def test(epoch):
     
     net.eval()
     
-    for batch_id, (inputs, labels) in enumerate(testloader):
-        bs, ncrops, c, h, w = np.shape(inputs)
+    for (inputs, labels) in testloader:
+        bs, c, h, w = np.shape(inputs)
         inputs = inputs.view(-1, c, h, w)
         
         if torch.cuda.is_available:
             inputs, labels = inputs.cuda(), labels.cuda()
         
+        #print('inputs: ')
+        #print(inputs.shape)
+        
         outputs = net(inputs)
+        #print(inputs[0])
+        #print(outputs[0])
+
+        #outputs_avg = outputs.view(bs, -1).mean(1) 
+        loss = criterion(outputs, labels)
         
-        outputs_avg = outputs.view(bs, ncrops, -1).mean(1) 
-        loss = criterion(outputs_avg, labels)
-        
-        _, predicted = torch.max(outputs_avg.data, 1)
+        _, predicted = torch.max(outputs.data, 1)
+        #print("Labels:")
+        #print(labels)
+        #print("Predicted:")
+        #print(predicted)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        print(f'predicted: {correct} on {total}')
         
         test_acc = 100.*correct/total
+        #print(f'Test_ACC:{test_acc}')
         
     if test_acc > best_test_acc:
         
         print(f"best_test_acc: {test_acc}")
         
-        torch.save(net.state_dict(), os.path.join('.', 'model.t7'))
+        torch.save(net.state_dict(), os.path.join('.', f'vgg_{test_acc}.t7'))
         best_test_acc = test_acc
-
-for epoch in range(0, 60):
+    
+for epoch in range(0, 80):
     train(epoch)
     test(epoch)
