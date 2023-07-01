@@ -2,32 +2,17 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from VGG import VGG19
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
 import os
 import numpy as np
+from metrics import compute_metric
+from db_loader import DBLoader
 
 best_test_acc = 0
+n_epoch = 90
+metric = compute_metric()
+db = DBLoader('BigFER')
 
-transform_train = transforms.Compose([
-    transforms.Grayscale(1),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomAdjustSharpness(sharpness_factor=2),
-    transforms.ToTensor()
-])
-
-transform_test = transforms.Compose([
-    transforms.RandomAdjustSharpness(sharpness_factor=2),
-    transforms.Grayscale(1),
-    transforms.ToTensor()
-])
-
-db = datasets.DatasetFolder(root='/workspace/FER Classification/Facial-Expression-Recognition.Pytorch/CK+48', transform=transform_train, loader=datasets.folder.default_loader, extensions='.png')
-trainset_len = int(0.8*len(db))
-trainset, testset = torch.utils.data.random_split(db, lengths=[trainset_len, len(db)-trainset_len])
-
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=20, shuffle=True, num_workers=1)
-testloader = torch.utils.data.DataLoader(testset, batch_size=20, shuffle=False, num_workers=1)
+trainloader, testloader = db.load()
 
 net = VGG19()
 
@@ -59,7 +44,7 @@ def train(epoch):
         loss = criterion(outputs, labels)
         
         # Clip Gradient
-        #torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
+        torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
         
         # Calcolo dei gradienti
         loss.backward()
@@ -72,9 +57,13 @@ def train(epoch):
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
         
-        accuracy = correct / total
+        accuracy = 100.*correct / total
         print(f"Accuracy {accuracy} Loss {loss/(batch_id+1)}")
+        metric.add(loss.item(), accuracy, predicted, labels)
         
+    metric.update()
+
+    
 def test(epoch):
     total = 0
     correct = 0
@@ -97,9 +86,8 @@ def test(epoch):
         #print(inputs[0])
         #print(outputs[0])
 
-        #outputs_avg = outputs.view(bs, -1).mean(1) 
         loss = criterion(outputs, labels)
-        
+
         _, predicted = torch.max(outputs.data, 1)
         #print("Labels:")
         #print(labels)
@@ -110,15 +98,24 @@ def test(epoch):
         print(f'predicted: {correct} on {total}')
         
         test_acc = 100.*correct/total
+        metric.add_test(loss.item(), test_acc, predicted, labels)
         #print(f'Test_ACC:{test_acc}')
         
     if test_acc > best_test_acc:
         
         print(f"best_test_acc: {test_acc}")
         
-        torch.save(net.state_dict(), os.path.join('.', f'vgg_{test_acc}.t7'))
+        torch.save(net.state_dict(), os.path.join('.', f'vgg_bigfer_{test_acc}.t7'))
         best_test_acc = test_acc
-    
-for epoch in range(0, 80):
+        
+    metric.update_test()
+      
+for epoch in range(0, n_epoch):
     train(epoch)
     test(epoch)
+    
+metric.plot(np.linspace(1, n_epoch, n_epoch).astype(int), metric='Loss')
+metric.plot(np.linspace(1, n_epoch, n_epoch).astype(int), metric='Accuracy')
+metric.plot(np.linspace(1, n_epoch, n_epoch).astype(int), metric='F1-Score')
+metric.plot(np.linspace(1, n_epoch, n_epoch).astype(int), metric='Precision')
+metric.plot(np.linspace(1, n_epoch, n_epoch).astype(int), metric='Recall')

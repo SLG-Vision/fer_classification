@@ -1,8 +1,6 @@
-import torch
+import matplotlib.pyplot as plt
 from torchvision import transforms
 import cv2
-import numpy as np
-
 
 class Utility:
     def __init__(self):
@@ -16,8 +14,12 @@ class Utility:
     @property
     def transform(self):
         return self._transform
+    
     def print(self, frame):
         frame = frame.permute(1,2,0)
         img = frame.numpy()
         cv2.imshow('Transformed Img', img)
 
+    def plot(epochs, loss):
+        plt.plot(epochs, loss)
+        plt.savefig("plot.png")
