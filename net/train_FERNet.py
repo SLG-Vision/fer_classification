@@ -60,8 +60,6 @@ def train(epoch):
     
     for batch_id, (img, label) in enumerate(trainloader):        
         
-        img, label = img.cuda(), label.cuda()
-        
         teacher_outputs = teacher(img)
         student_outputs = student(img)
         
@@ -92,9 +90,7 @@ def test(epoch):
     student.eval()
     
     for (inputs, labels) in testloader:
-        
-        inputs, labels = inputs.cuda(), labels.cuda()
-        
+                
         student_outputs = student(inputs)
         loss = criterion(student_outputs, labels)
         

@@ -3,3 +3,5 @@ __pycache__
 dataset
 *.json
 *.jpg
+*.t7
+*.txt
