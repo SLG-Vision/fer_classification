@@ -1,4 +1,5 @@
 from sklearn.metrics import precision_score, recall_score, f1_score, log_loss
+import torch
 import matplotlib.pyplot as plt
 
 class compute_metric:
@@ -30,13 +31,14 @@ class compute_metric:
         self.test_f1 = [] 
 
     
-    def add(self, loss, acc, pred, labels):
-        self.epoch_loss.append(loss)
+    def add(self, outputs, acc, pred, labels):
         self.epoch_acc.append(acc)
         self.epoch_y_true.extend(labels.cpu().numpy())
         self.epoch_y_pred.extend(pred.cpu().numpy())
-        
+        logloss = log_loss(labels.cpu().numpy(), torch.nn.functional.softmax(outputs.detach().cpu(), dim=1), labels=[0,1,2,3,4,5,6])
+        self.epoch_loss.append(logloss)
 
+        
     def update(self):
         self.loss_values.append(sum(self.epoch_loss)/len(self.epoch_loss))
         self.acc_values.append(sum(self.epoch_acc)/len(self.epoch_acc))
@@ -49,11 +51,12 @@ class compute_metric:
         self.epoch_y_pred.clear()
         self.epoch_y_true.clear()
     
-    def add_test(self, loss, acc, pred, labels):
-        self.epoch_test_loss.append(loss)
+    def add_test(self, outputs, acc, pred, labels):
         self.epoch_test_acc.append(acc)
         self.epoch_test_y_true.extend(labels.cpu().numpy())
         self.epoch_test_y_pred.extend(pred.cpu().numpy())
+        logloss = log_loss(labels.cpu().numpy(), torch.nn.functional.softmax(outputs.detach().cpu(), dim=1), labels=[0,1,2,3,4,5,6])
+        self.epoch_test_loss.append(logloss)
     
     def update_test(self):
         self.test_loss.append(sum(self.epoch_test_loss)/len(self.epoch_test_loss))
@@ -69,7 +72,7 @@ class compute_metric:
         self.epoch_test_y_true.clear()
 
     def plot(self, epochs, metric):
-        plt.title(metric)
+        plt.title(self.db + '_' + metric)
         plt.xlabel('Epoch')
         plt.ylabel(metric)
         if metric == 'Loss':
