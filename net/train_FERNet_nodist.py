@@ -8,9 +8,10 @@ from pretrained.metrics import compute_metric
 from pretrained.db_loader import DBLoader
 
 best_test_acc = 0
-n_epoch = 90
-metric = compute_metric('BigFER')
-db = DBLoader('BigFER')
+n_epoch = 80
+db_name = 'CK+'
+metric = compute_metric(db_name)
+db = DBLoader(db_name)
 
 trainloader, testloader = db.load()
     
@@ -34,7 +35,7 @@ def train(epoch):
         student_outputs = student(img)
         
         loss_student = criterion(student_outputs, label)
-        
+
         # Aggiorno i pesi dello student
         optimizer.zero_grad()
         
@@ -78,7 +79,7 @@ def test(epoch):
         
         print(f"best_test_acc: {test_acc}")
         
-        torch.save(student.state_dict(), os.path.join('.', f'student_distilled_bigfer_nodist_{test_acc}.t7'))
+        torch.save(student.state_dict(), os.path.join('.', f'student_distilled_bigfer_nodist.t7'))
         best_test_acc = test_acc        
     metric.update_test()
 

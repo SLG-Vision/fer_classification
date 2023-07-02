@@ -3,5 +3,8 @@ __pycache__
 dataset
 *.json
 *.jpg
+*.png
 *.t7
 *.txt
+bigfer
+CK+48

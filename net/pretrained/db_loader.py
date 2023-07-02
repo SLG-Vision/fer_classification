@@ -15,20 +15,20 @@ class DBLoader():
         ])
         
         if db == 'CK+':
-            self.db_path = '/workspace/FER Classification/Facial-Expression-Recognition.Pytorch/CK+48'
+            self.db_path = '/homes/vlapadula/fer_classification/net/CK+48'
             self.train_batch_size = 20
             self.test_batch_size = 20
             self.db = datasets.DatasetFolder(root=self.db_path, transform=self.transformations, loader=datasets.folder.default_loader, extensions='.png')
 
         if db == 'FER2013':
-            self.db_path = '/workspace/FER Classification/DBs/fer2013/'
-            self.train_batch_size = 60
-            self.test_batch_size = 30
+            self.db_path = '/homes/vlapadula/Dataset/FER2013/'
+            self.train_batch_size = 200
+            self.test_batch_size = 150
         
         if db == 'BigFER':
-            self.db_path = '/workspace/FER Classification/FER-Classification/net/pretrained/dataset/images/'
-            self.train_batch_size = 40
-            self.test_batch_size = 40
+            self.db_path = '/homes/vlapadula/fer_classification/net/bigfer/dataset/images/'
+            self.train_batch_size = 200
+            self.test_batch_size = 150
         
         
     def load(self):

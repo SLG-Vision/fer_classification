@@ -9,8 +9,9 @@ from db_loader import DBLoader
 
 best_test_acc = 0
 n_epoch = 90
-metric = compute_metric()
-db = DBLoader('BigFER')
+db_name = 'FER2013'
+metric = compute_metric(db_name)
+db = DBLoader(db_name)
 
 trainloader, testloader = db.load()
 
@@ -58,8 +59,8 @@ def train(epoch):
         correct += (predicted == labels).sum().item()
         
         accuracy = 100.*correct / total
-        print(f"Accuracy {accuracy} Loss {loss/(batch_id+1)}")
-        metric.add(loss.item(), accuracy, predicted, labels)
+        #print(f"Accuracy {accuracy} Loss {loss/(batch_id+1)}")
+        metric.add(outputs, accuracy, predicted, labels)
         
     metric.update()
 
@@ -95,17 +96,17 @@ def test(epoch):
         #print(predicted)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-        print(f'predicted: {correct} on {total}')
+        #print(f'predicted: {correct} on {total}')
         
         test_acc = 100.*correct/total
-        metric.add_test(loss.item(), test_acc, predicted, labels)
+        metric.add_test(outputs, test_acc, predicted, labels)
         #print(f'Test_ACC:{test_acc}')
         
     if test_acc > best_test_acc:
         
         print(f"best_test_acc: {test_acc}")
         
-        torch.save(net.state_dict(), os.path.join('.', f'vgg_bigfer_{test_acc}.t7'))
+        torch.save(net.state_dict(), os.path.join('.', f'vgg_{db_name}.t7'))
         best_test_acc = test_acc
         
     metric.update_test()
