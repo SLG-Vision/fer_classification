@@ -8,7 +8,7 @@ from pretrained.metrics import compute_metric
 from pretrained.db_loader import DBLoader
 
 best_test_acc = 0
-n_epoch = 80
+n_epoch = 15
 db_name = 'CK+'
 metric = compute_metric(db_name)
 db = DBLoader(db_name)
@@ -50,7 +50,7 @@ def train(epoch):
         accuracy = 100.*correct / total
         
         print(f"Accuracy {accuracy} Distillation Loss {loss_student/(batch_id+1)}")
-        metric.add(loss_student.item(), accuracy, predicted, label)
+        metric.add(student_outputs, accuracy, predicted, label)
         
     metric.update()
     
@@ -72,14 +72,14 @@ def test(epoch):
         correct += (predicted == labels).sum().item()
         
         test_acc = 100.*correct/total
-        metric.add_test(loss.item(), test_acc, predicted, labels)
+        metric.add_test(student_outputs, test_acc, predicted, labels)
         print(f'predicted: {correct} on {total}')
 
     if test_acc > best_test_acc:
         
         print(f"best_test_acc: {test_acc}")
         
-        torch.save(student.state_dict(), os.path.join('.', f'student_distilled_bigfer_nodist.t7'))
+        torch.save(student.state_dict(), os.path.join('.', f'student_distilled_{db_name}_nodist.t7'))
         best_test_acc = test_acc        
     metric.update_test()
 

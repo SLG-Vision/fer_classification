@@ -11,8 +11,9 @@ from pretrained.db_loader import DBLoader
 
 best_test_acc = 0
 n_epoch = 35
-metric = compute_metric('FER2013')
-db = DBLoader('FER2013')
+db_name = 'CK+'
+metric = compute_metric(db_name)
+db = DBLoader(db_name)
 
 trainloader, testloader = db.load()
 
@@ -64,7 +65,7 @@ def train(epoch):
         accuracy = 100.*correct / total
         
         print(f"Accuracy {accuracy} Distillation Loss {loss_dist/(batch_id+1)}")
-        metric.add(loss_dist.item(), accuracy, predicted, label)
+        metric.add(student_outputs, accuracy, predicted, label)
         
     metric.update()
     
@@ -86,7 +87,7 @@ def test(epoch):
         correct += (predicted == labels).sum().item()
         
         test_acc = 100.*correct/total
-        metric.add_test(loss.item(), test_acc, predicted, labels)
+        metric.add_test(student_outputs, test_acc, predicted, labels)
         print(f'predicted: {correct} on {total}')
 
     if test_acc > best_test_acc:

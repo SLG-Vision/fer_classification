@@ -8,7 +8,7 @@ from metrics import compute_metric
 from db_loader import DBLoader
 
 best_test_acc = 0
-n_epoch = 90
+n_epoch = 75
 db_name = 'FER2013'
 metric = compute_metric(db_name)
 db = DBLoader(db_name)

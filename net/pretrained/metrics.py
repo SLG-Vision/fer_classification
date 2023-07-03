@@ -76,18 +76,23 @@ class compute_metric:
         plt.xlabel('Epoch')
         plt.ylabel(metric)
         if metric == 'Loss':
+            print(max(self.test_loss))
             plt.plot(epochs, self.loss_values, label='Train')
             plt.plot(epochs, self.test_loss  , label='Test')
         if metric == 'Accuracy':
+            print(max(self.test_acc))
             plt.plot(epochs, self.acc_values, label='Train')
             plt.plot(epochs, self.test_acc  , label='Test')
         if metric == 'Precision':
+            print(max(self.test_precision))
             plt.plot(epochs, self.precision, label='Train')
             plt.plot(epochs, self.test_precision  , label='Test')
         if metric == 'Recall':
+            print(max(self.test_recall))
             plt.plot(epochs, self.recall, label='Train')
             plt.plot(epochs, self.test_recall  , label='Test')
         if metric == 'F1-Score':
+            print(max(self.test_f1))
             plt.plot(epochs, self.f1, label='Train')
             plt.plot(epochs, self.test_f1  , label='Test')
             
